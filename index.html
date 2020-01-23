@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+	<html>
+		<head>
+			<title>Match Game</title>
+			<style>
+				body
+				{
+					background-color: #ffbd38;
+				}
+				#title
+				{
+					text-align: center;
+					font: bold 40pt mansalva;
+				}
+				p
+				{
+					font: 14pt Tw Cen MT;
+					text-align: center;
+				}
+				#scoreboard
+				{
+					font: 16pt Tw Cen MT;
+					position: absolute;
+   					top: 95%;
+   					right: 2.5%;
+				}
+				img
+				{
+					width: 120px;
+					height: 170px;
+				}
+				#layout
+				{
+					text-align: center;
+				}
+				button
+				{
+					font: 16pt Tw Cen MT;
+					background-color: #94bdff;
+				}
+				@font-face {
+					font-family: "mansalva";
+					src: url(https://fonts.gstatic.com/s/mansalva/v1/aWB4m0aacbtDfvq5NKliKY8.woff2) format('woff2');
+				}
+			</style>
+			<script>
+				function initialize()   //variables
+				{  //cards as objects
+					card1 = document.getElementById("back1");
+					card2 = document.getElementById("back2");
+					card3 = document.getElementById("back3");
+					card4 = document.getElementById("back4");
+					card5 = document.getElementById("back5");
+					card6 = document.getElementById("back6");
+					card7 = document.getElementById("back7");
+					card8 = document.getElementById("back8");
+					card9 = document.getElementById("back9");
+					card10 = document.getElementById("back10");
+					card11 = document.getElementById("back11");
+					card12 = document.getElementById("back12");
+					card13 = document.getElementById("back13");
+					card14 = document.getElementById("back14");
+					card15 = document.getElementById("back15");
+					card16 = document.getElementById("back16");
+					//score and message board outputs
+					scoreOut = document.getElementById("score");
+					bestScore = document.getElementById("best");
+					message = document.getElementById("messageBoard");
+					
+					for (var i = 0; i<16; i++) //flip to back
+					{
+						cards = [card1, card2, card3, card4, card5, card6, card7, card8, card9, card10, card11, card12, card13, card14, card15, card16];
+						cards[i].src = "images/back side.png";
+					}
+					//tracking clicks
+					clicks = 0;
+					click1 = "";
+					click2 = "";
+					go = true;
+					//instructions - default on message board
+					messageOut = "Instructions: Click on any 2 cards to turn them over.  Cards will remain facing up only if the selected cards have the same image.  Otherwise, the selected cards face down again.  The score will increase every time a card is clicked.  The goal of the game is to have all the cards face up while keeping the score as low as possible.";
+					//tracking best score
+					if (!sessionStorage.best)
+					{
+						sessionStorage.best = 0;
+					}
+					//identify when a round is finished
+					roundFinished = false;
+					//update display and start shuffling cards
+					randomAssignment();
+					display();
+				}
+				function randomAssignment()  //determine which card has what picture
+				{
+					var faces = ["1", "2", "3", "4", "5", "6", "7", "8", "1", "2", "3", "4", "5", "6", "7", "8"];
+					for (var i = 0; i<16; i++)
+					{
+						var position = randomNumberGenerator(faces.length-1);
+						cards[i].front = "images/face" + faces[position] + ".png";
+						cards[i].flipped = false;
+						faces.splice(position, 1);
+					}
+				}
+				function randomNumberGenerator(max)  //use to pick a random face
+				{
+					return Math.floor(Math.random()*Math.floor(max));
+				}
+				function flip(cardNum)  //flips cards and keep track of number of flips
+				{
+					if (go && !cardNum.flipped)
+					{
+						clicks++;
+						display();
+						cardNum.src = cardNum.front;
+						cardNum.flipped = true;
+						if (clicks % 2 == 1)  //track first card
+						{
+							click1 = cardNum;
+						}
+						else
+						{
+							click2 = cardNum;
+							if (click1.front != click2.front)  //to flip back or not?
+							{
+								go = false;
+								setTimeout(function(){
+									click1.src = "images/back side.png"
+									click2.src = "images/back side.png"
+									click1.flipped = false;
+									click2.flipped = false;
+									go = true;
+									}, 1250)
+							}
+						}
+						roundEnd();
+					}
+				}
+				function display() //update scores and message board
+				{
+					scoreOut.innerHTML = clicks;
+					bestScore.innerHTML = sessionStorage.best;
+					message.innerHTML = messageOut;
+				}
+				function roundEnd() 
+				{
+					var backCount = 0;
+					for (var i=0; i<16; i++) //detects when round is over
+					{
+						if (!cards[i].flipped)
+						{
+							backCount++;
+						}
+					}
+					if (backCount == 0)
+					{
+						roundFinished = true;
+					}
+					if (roundFinished) //update best score
+					{
+						if (clicks < sessionStorage.best || sessionStorage.best == 0)
+						{
+							sessionStorage.best = clicks;
+						}
+					}
+					if (roundFinished) //score based comments on message board
+					{
+						var again = "Click 'New Game' to play again.  ";
+						switch(true)
+						{
+							case clicks < 16: messageOut = "Hmmm...Looks like you hacked the game.  Am disappointed.  No cheating allowed!  " + again + "Don't cheat ever again!  I'm watching.  ";
+							break;
+							case clicks === 16: messageOut = "Perfect score!! Congrats! I'm so proud.  Lets see if you can get a perfect score again.  " + again;
+							break;
+							case 16 < clicks && clicks < 36: messageOut = "Wonderful job!  Lets see you get even closer to the perfect score.  " + again;  //low
+							break;
+							case 36 < clicks && clicks < 56: messageOut = "You did well!  Lets play again and see you improve.  " + again; //med
+							break;
+							default: messageOut = "Nice try, but I know you can do better. :)  " + again; //high
+						}
+					}
+					display();
+				}
+			</script>
+		</head>
+		<body onload = "initialize();">
+			<div id = "title">Match Game</div>
+			<p id = "messageBoard"></p>
+			<!--cards will go below div-->
+			<div id = "layout">
+				<img id = "back1" onclick = "flip(card1);" />
+				<img id = "back2" onclick = "flip(card2);" />
+				<img id = "back3" onclick = "flip(card3);" />
+				<img id = "back4" onclick = "flip(card4);" />
+				</br>
+				<img id = "back5" onclick = "flip(card5);" />
+				<img id = "back6" onclick = "flip(card6);" />
+				<img id = "back7" onclick = "flip(card7);" />
+				<img id = "back8" onclick = "flip(card8);" />
+				</br>
+				<img id = "back9" onclick = "flip(card9);" />
+				<img id = "back10" onclick = "flip(card10);" />
+				<img id = "back11" onclick = "flip(card11);" />
+				<img id = "back12" onclick = "flip(card12);" />
+				<br>
+				<img id = "back13" onclick = "flip(card13);" />
+				<img id = "back14" onclick = "flip(card14);" />
+				<img id = "back15" onclick = "flip(card15);" />
+				<img id = "back16" onclick = "flip(card16);" />
+			</div>
+			<span id = "scoreboard"> 
+				Score: <span id = "score">0</span>
+				<button onclick = "initialize();">New Game</button> 
+				Best score: <span id = "best"></span>
+			</span>
+		</body>
+	</html>
